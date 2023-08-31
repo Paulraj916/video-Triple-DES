@@ -11,7 +11,7 @@ salt = "$ez*&214097GDAKACNASC;LSOSSBAdjskasnmosuf!@#$^()_adsa"
 
 def encrypt_video(video_path, password):
     try:
-        video = video_file.read()
+        video = video_path.read()
         
         # Hashing original video in SHA256
         hash_of_original = SHA256.new(data=video)
