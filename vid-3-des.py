@@ -4,18 +4,15 @@ from Crypto.Hash import SHA256
 from getpass import getpass
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Util.Padding import pad, unpad
-import os
+from io import BytesIO
 
 Key_length = 100005
 salt = "$ez*&214097GDAKACNASC;LSOSSBAdjskasnmosuf!@#$^()_adsa"
 
-def encrypt_video(video_path, password):
+def encrypt_video(video_data, password):
     try:
-        with open(video_path, 'rb') as videofile:
-            video = videofile.read()
-        
         # Hashing original video in SHA256
-        hash_of_original = SHA256.new(data=video)
+        hash_of_original = SHA256.new(data=video_data)
         
         # Inputting Keys
         key_enc = password
@@ -24,10 +21,10 @@ def encrypt_video(video_path, password):
         key_enc = PBKDF2(key_enc, salt, 48, Key_length)
         
         # Pad the input data to meet the block size requirement
-        padded_video = pad(video, DES.block_size)
+        padded_video = pad(video_data, DES.block_size)
         
         # Encrypting using triple 3 key DES	
-        print("Wait it is being encrypting.....\n")
+        st.write("Wait it is being encrypting.....\n")
         try:
             cipher1 = DES.new(key_enc[0:8], DES.MODE_CBC, key_enc[24:32])
             ciphertext1 = cipher1.encrypt(padded_video)
@@ -36,44 +33,31 @@ def encrypt_video(video_path, password):
             cipher3 = DES.new(key_enc[16:24], DES.MODE_CBC, key_enc[40:48])
             ciphertext3 = cipher3.encrypt(ciphertext2)
             
-            print("\n------ENCRYPTION SUCCESSFUL-------")
+            st.write("\n------ENCRYPTION SUCCESSFUL-------")
         except Exception as e:
-            print("Encryption failed... Possible causes:", e)
-            exit()
+            st.error("Encryption failed... Possible causes: " + str(e))
+            return
         
         # Adding hash at end of encrypted bytes
         ciphertext3 += hash_of_original.digest()
         
-        # Saving the encrypted file
-        try:
-            dpath = "encrypted_" + video_path
-            with open(dpath, 'wb') as video_file:
-                video_file.write(ciphertext3)
-            print("Encrypted Video Saved successfully as filename " + dpath)
-        except:
-            print("Failed to save encrypted file!")
-            exit()
-    except Exception as e:
-        print("Error loading the file:", e)
-        exit()
+        st.write("\n------ENCRYPTION SUCCESSFUL-------")
+        return ciphertext3
 
-def decrypt_video(encrypted_video_path, password):
+def decrypt_video(encrypted_data, password):
     try:
-        with open(encrypted_video_path, 'rb') as encrypted_file:
-            encrypted_data_with_hash = encrypted_file.read()
-
         # Key Authentication
         key_dec = password
 
         # Extracting hash and cipher data without hash
-        extracted_hash = encrypted_data_with_hash[-32:]
-        encrypted_data = encrypted_data_with_hash[:-32]
+        extracted_hash = encrypted_data[-32:]
+        encrypted_data = encrypted_data[:-32]
 
         # Salting and hashing password
         key_dec = PBKDF2(key_dec, salt, 48, Key_length)
 
         # Decrypting using triple 3 key DES
-        print("Decrypting...")
+        st.write("Decrypting...")
         try:
             cipher3 = DES.new(key_dec[16:24], DES.MODE_CBC, key_dec[40:48])
             decrypted_data3 = cipher3.decrypt(encrypted_data)
@@ -83,8 +67,8 @@ def decrypt_video(encrypted_video_path, password):
             decrypted_data1 = cipher1.decrypt(decrypted_data2)
 
         except Exception as e:
-            print("Decryption failed... Possible causes:", e)
-            exit()
+            st.error("Decryption failed... Possible causes: " + str(e))
+            return
 
         # Unpad the decrypted data
         decrypted_video = unpad(decrypted_data1, DES.block_size)
@@ -94,28 +78,14 @@ def decrypt_video(encrypted_video_path, password):
 
         # Matching hashes
         if hash_of_decrypted.digest() == extracted_hash:
-            print("Password Correct !!!")
-            print("------DECRYPTION SUCCESSFUL------")
             st.success("Decryption successful!")
+            return decrypted_video
         else:
-            print("Incorrect Password!!!!!")
-            exit()
-
-        # Saving the decrypted file
-        try:
-            epath = encrypted_video_path
-            if epath[:10] == "encrypted_":
-                epath = epath[10:]
-            epath = "decrypted_" + epath
-            with open(epath, 'wb') as video_file:
-                video_file.write(decrypted_video)
-            print("Video saved successfully with name " + epath)
-        except:
-            print("Failed to save decrypted file!")
-            exit()
+            st.error("Incorrect Password!!!!!")
+            return None
     except Exception as e:
-        st.warning("Please provide correct encrypted video file or give correct password for the encrypted video")
-        exit()
+        st.error("Decryption failed: " + str(e))
+        return None
 
 def main():
     st.title("Triple DES Video Encryption and Decryption")
@@ -127,8 +97,12 @@ def main():
         password = st.text_input("Enter minimum 8 character long password:", type="password")
         if st.button("Encrypt"):
             if video_file and len(password) >= 8:
-                encrypt_video(video_file.name, password)
-                st.success("Encryption successful!")
+                video_data = video_file.read()
+                encrypted_data = encrypt_video(video_data, password)
+                if encrypted_data:
+                    st.success("Encryption successful!")
+                else:
+                    st.error("Encryption failed.")
             else:
                 st.warning("Please provide a video file and a password of at least 8 characters.")
     
@@ -138,7 +112,12 @@ def main():
         
         if st.button("Decrypt"):
             if encrypted_video_file and password:
-                decrypt_video(encrypted_video_file.name, password)
+                encrypted_data = encrypted_video_file.read()
+                decrypted_data = decrypt_video(encrypted_data, password)
+                if decrypted_data:
+                    st.success("Decryption successful!")
+                else:
+                    st.error("Decryption failed.")
                     
 if __name__ == "__main__":
     main()
