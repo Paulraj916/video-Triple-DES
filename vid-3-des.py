@@ -184,11 +184,21 @@ def main():
         if st.button("Decrypt"):
             if encrypted_video_file and password:
                 # Save the uploaded video to the "output" folder
-                video_path = os.path.join(output_folder, encrypted_video_file.name)
-                with open(video_path, 'wb') as output_file:
+                encrypted_video_path = os.path.join(output_folder, encrypted_video_file.name)
+                with open(encrypted_video_path, 'wb') as output_file:
                     output_file.write(encrypted_video_file.read())
-                print(video_path)
-                decrypt_video(video_path, password)
+                
+                print(encrypted_video_path)
+                decrypted_video_path = os.path.join(output_folder, "decrypted_" + encrypted_video_file.name)
+                decrypt_video(encrypted_video_path, password)
+
+                with open(decrypted_video_path, 'rb') as f:
+                    decrypted_video_bytes = f.read()
+                
+                st.markdown(
+                    f'<a href="data:video/mp4;base64,{base64.b64encode(decrypted_video_bytes).decode()}" download="decrypted_video.mp4">Download Decrypted Video</a>',
+                    unsafe_allow_html=True
+                )
                 #st.success("Decryption successful!")
                 # Delete the original video file
                 #print("Original video deleted:", video_path)
@@ -203,13 +213,13 @@ def main():
                 #     mime="video/mp4"
                 # )
                 # Provide download link for the decrypted video
-                decrypted_video_name = os.path.basename(video_path)
-                with open(decrypted_video_name, 'rb') as f:
-                    decrypted_video_bytes = f.read()
-                st.markdown(
-                    f'<a href="data:video/mp4;base64,{base64.b64encode(decrypted_video_bytes).decode()}" download="decrypted_video.mp4">Download Decrypted Video</a>',
-                    unsafe_allow_html=True
-                )
+                # decrypted_video_name = os.path.basename(video_path)
+                # with open(decrypted_video_name, 'rb') as f:
+                #     decrypted_video_bytes = f.read()
+                # st.markdown(
+                #     f'<a href="data:video/mp4;base64,{base64.b64encode(decrypted_video_bytes).decode()}" download="decrypted_video.mp4">Download Decrypted Video</a>',
+                #     unsafe_allow_html=True
+                # )
                     
 if __name__ == "__main__":
     main()
