@@ -109,9 +109,6 @@ def decrypt_video(encrypted_video_path, password):
 
         # Saving the decrypted file
         try:
-            #epath = encrypted_video_path
-            #if epath[:10] == "encrypted_":
-            #    epath = epath[10:]
             epath = os.path.join(output_folder, "decrypted_" + os.path.basename(encrypted_video_path))
             #epath = "decrypted_" + epath
             with open(epath, 'wb') as video_file:
@@ -143,16 +140,6 @@ def main():
                 encrypt_video(video_path, password)
                 st.success("Encryption successful!")
 
-                # Provide download link for the encrypted video
-                # encrypted_video_name = os.path.basename(video_path)
-                # encrypted_video_data = open(os.path.join(output_folder, "encrypted_" + encrypted_video_name), "rb").read()
-                # st.download_button(
-                #     "Download Encrypted Video",
-                #     encrypted_video_data,
-                #     key="encrypted_video",
-                #     mime="video/mp4"
-                # )
-                # Provide download link for the encrypted video
                 encrypted_video_name = os.path.basename(video_path)
                 encrypted_video_path = os.path.join(output_folder, "encrypted_" + encrypted_video_name)
                 with open(encrypted_video_path, 'rb') as f:
@@ -164,15 +151,6 @@ def main():
                 
                 # Remove the original uploaded video
                 os.remove(video_path)
-                # Delete the original video file
-                #os.remove(video_path)
-                #print("Original video deleted:", video_path)
-                
-                # Provide a download button for the encrypted video
-                #encrypted_video_name = "encrypted_" + video_file.name
-                #encrypted_video_path = os.path.join(output_folder, encrypted_video_name)
-                #print("Encrypted video path:", encrypted_video_path)
-                #st.download_button("Download Encrypted Video", encrypted_video_path, key=encrypted_video_name, mime="video/mp4")
                 shutil.rmtree(output_folder)
             else:
                 st.warning("Please provide a video file and a password of at least 8 characters.")
@@ -199,27 +177,6 @@ def main():
                     f'<a href="data:video/mp4;base64,{base64.b64encode(decrypted_video_bytes).decode()}" download="decrypted_video.mp4">Download Decrypted Video</a>',
                     unsafe_allow_html=True
                 )
-                #st.success("Decryption successful!")
-                # Delete the original video file
-                #print("Original video deleted:", video_path)
-                
-                # Provide a download button for the encrypted video
-                # encrypted_video_name = os.path.basename(video_path)
-                # encrypted_video_data = open(os.path.join(output_folder, "decrypted_" + encrypted_video_name), "rb").read()
-                # st.download_button(
-                #     "Download Encrypted Video",
-                #     encrypted_video_data,
-                #     key="encrypted_video",
-                #     mime="video/mp4"
-                # )
-                # Provide download link for the decrypted video
-                # decrypted_video_name = os.path.basename(video_path)
-                # with open(decrypted_video_name, 'rb') as f:
-                #     decrypted_video_bytes = f.read()
-                # st.markdown(
-                #     f'<a href="data:video/mp4;base64,{base64.b64encode(decrypted_video_bytes).decode()}" download="decrypted_video.mp4">Download Decrypted Video</a>',
-                #     unsafe_allow_html=True
-                # )
                     
 if __name__ == "__main__":
     main()
