@@ -1,3 +1,4 @@
+import base64
 import streamlit as st
 from Crypto.Cipher import DES
 from Crypto.Hash import SHA256
@@ -143,14 +144,18 @@ def main():
                 st.success("Encryption successful!")
 
                 # Provide download link for the encrypted video
+                # encrypted_video_name = os.path.basename(video_path)
+                # encrypted_video_data = open(os.path.join(output_folder, "encrypted_" + encrypted_video_name), "rb").read()
+                # st.download_button(
+                #     "Download Encrypted Video",
+                #     encrypted_video_data,
+                #     key="encrypted_video",
+                #     mime="video/mp4"
+                # )
                 encrypted_video_name = os.path.basename(video_path)
-                encrypted_video_data = open(os.path.join(output_folder, "encrypted_" + encrypted_video_name), "rb").read()
-                st.download_button(
-                    "Download Encrypted Video",
-                    encrypted_video_data,
-                    key="encrypted_video",
-                    mime="video/mp4"
-                )
+                encrypted_video_path = os.path.join(output_folder, "encrypted_" + encrypted_video_name)
+                st.markdown(f"Download [Encrypted Video](data:video/mp4;base64,{base64.b64encode(open(encrypted_video_path, 'rb').read()).decode()})", unsafe_allow_html=True)
+
                 
                 # Remove the original uploaded video
                 os.remove(video_path)
@@ -184,14 +189,16 @@ def main():
                 #print("Original video deleted:", video_path)
                 
                 # Provide a download button for the encrypted video
-                encrypted_video_name = os.path.basename(video_path)
-                encrypted_video_data = open(os.path.join(output_folder, "decrypted_" + encrypted_video_name), "rb").read()
-                st.download_button(
-                    "Download Encrypted Video",
-                    encrypted_video_data,
-                    key="encrypted_video",
-                    mime="video/mp4"
-                )
+                # encrypted_video_name = os.path.basename(video_path)
+                # encrypted_video_data = open(os.path.join(output_folder, "decrypted_" + encrypted_video_name), "rb").read()
+                # st.download_button(
+                #     "Download Encrypted Video",
+                #     encrypted_video_data,
+                #     key="encrypted_video",
+                #     mime="video/mp4"
+                # )
+                decrypted_video_name = os.path.basename(video_path)
+                st.markdown(f"Download [Decrypted Video](data:video/mp4;base64,{base64.b64encode(open(video_path, 'rb').read()).decode()})", unsafe_allow_html=True)
                 os.remove(video_path)
                 shutil.rmtree(output_folder)
                     
