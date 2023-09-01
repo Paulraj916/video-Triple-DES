@@ -5,13 +5,19 @@ from getpass import getpass
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Util.Padding import pad, unpad
 import os
+import shutil
 
 Key_length = 100005
 salt = "$ez*&214097GDAKACNASC;LSOSSBAdjskasnmosuf!@#$^()_adsa"
 
+output_folder = "output"
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
 def encrypt_video(video_path, password):
     try:
-        video = video_path.read()
+        with open(video_path, 'rb') as videofile:
+            video = videofile.read()
         
         # Hashing original video in SHA256
         hash_of_original = SHA256.new(data=video)
@@ -45,7 +51,7 @@ def encrypt_video(video_path, password):
         
         # Saving the encrypted file
         try:
-            dpath = "encrypted_" + video_path
+            dpath = os.path.join(output_folder, "encrypted_" + os.path.basename(video_path))
             with open(dpath, 'wb') as video_file:
                 video_file.write(ciphertext3)
             print("Encrypted Video Saved successfully as filename " + dpath)
@@ -102,10 +108,11 @@ def decrypt_video(encrypted_video_path, password):
 
         # Saving the decrypted file
         try:
-            epath = encrypted_video_path
-            if epath[:10] == "encrypted_":
-                epath = epath[10:]
-            epath = "decrypted_" + epath
+            #epath = encrypted_video_path
+            #if epath[:10] == "encrypted_":
+            #    epath = epath[10:]
+            epath = os.path.join(output_folder, "decrypted_" + os.path.basename(encrypted_video_path))
+            #epath = "decrypted_" + epath
             with open(epath, 'wb') as video_file:
                 video_file.write(decrypted_video)
             print("Video saved successfully with name " + epath)
@@ -125,9 +132,38 @@ def main():
         video_file = st.file_uploader("Upload a video to encrypt", type=["mp4"])
         password = st.text_input("Enter minimum 8 character long password:", type="password")
         if st.button("Encrypt"):
+            print(video_file)
             if video_file and len(password) >= 8:
-                encrypt_video(video_file.name, password)
+                # Save the uploaded video to the "output" folder
+                video_path = os.path.join(output_folder, video_file.name)
+                with open(video_path, 'wb') as output_file:
+                    output_file.write(video_file.read())
+                print(video_path)
+                encrypt_video(video_path, password)
                 st.success("Encryption successful!")
+
+                # Provide download link for the encrypted video
+                encrypted_video_name = os.path.basename(video_path)
+                encrypted_video_data = open(os.path.join(output_folder, "encrypted_" + encrypted_video_name), "rb").read()
+                st.download_button(
+                    "Download Encrypted Video",
+                    encrypted_video_data,
+                    key="encrypted_video",
+                    mime="video/mp4"
+                )
+                
+                # Remove the original uploaded video
+                os.remove(video_path)
+                # Delete the original video file
+                #os.remove(video_path)
+                #print("Original video deleted:", video_path)
+                
+                # Provide a download button for the encrypted video
+                #encrypted_video_name = "encrypted_" + video_file.name
+                #encrypted_video_path = os.path.join(output_folder, encrypted_video_name)
+                #print("Encrypted video path:", encrypted_video_path)
+                #st.download_button("Download Encrypted Video", encrypted_video_path, key=encrypted_video_name, mime="video/mp4")
+                shutil.rmtree(output_folder)
             else:
                 st.warning("Please provide a video file and a password of at least 8 characters.")
     
@@ -137,7 +173,27 @@ def main():
         
         if st.button("Decrypt"):
             if encrypted_video_file and password:
-                decrypt_video(encrypted_video_file.name, password)
+                # Save the uploaded video to the "output" folder
+                video_path = os.path.join(output_folder, encrypted_video_file.name)
+                with open(video_path, 'wb') as output_file:
+                    output_file.write(encrypted_video_file.read())
+                print(video_path)
+                decrypt_video(video_path, password)
+                #st.success("Decryption successful!")
+                # Delete the original video file
+                #print("Original video deleted:", video_path)
+                
+                # Provide a download button for the encrypted video
+                encrypted_video_name = os.path.basename(video_path)
+                encrypted_video_data = open(os.path.join(output_folder, "decrypted_" + encrypted_video_name), "rb").read()
+                st.download_button(
+                    "Download Encrypted Video",
+                    encrypted_video_data,
+                    key="encrypted_video",
+                    mime="video/mp4"
+                )
+                os.remove(video_path)
+                shutil.rmtree(output_folder)
                     
 if __name__ == "__main__":
     main()
