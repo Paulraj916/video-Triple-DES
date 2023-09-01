@@ -154,7 +154,10 @@ def main():
                 # )
                 encrypted_video_name = os.path.basename(video_path)
                 encrypted_video_path = os.path.join(output_folder, "encrypted_" + encrypted_video_name)
-                st.markdown(f"Download [Encrypted Video](data:video/mp4;base64,{base64.b64encode(open(encrypted_video_path, 'rb').read()).decode()})", unsafe_allow_html=True)
+                with open(encrypted_video_path, 'rb') as f:
+                    encrypted_video_bytes = f.read()
+                st.download_button("Download Encrypted Video", encrypted_video_bytes, key="encrypted_video")
+
 
                 
                 # Remove the original uploaded video
@@ -198,9 +201,9 @@ def main():
                 #     mime="video/mp4"
                 # )
                 decrypted_video_name = os.path.basename(video_path)
-                st.markdown(f"Download [Decrypted Video](data:video/mp4;base64,{base64.b64encode(open(video_path, 'rb').read()).decode()})", unsafe_allow_html=True)
-                os.remove(video_path)
-                shutil.rmtree(output_folder)
+                with open(decrypted_video_name, 'rb') as f:
+                    decrypted_video_bytes = f.read()
+                st.download_button("Download Decrypted Video", decrypted_video_bytes, key="decrypted_video")
                     
 if __name__ == "__main__":
     main()
